@@ -3,171 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Family // Secure Chat</title>
+    <title>WhatsApp</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0b141a">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background: #0b141a; color: #e9edef; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* WhatsApp / Telegram Tarzı Üst Bar */
-        header { background: #202c33; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222d34; height: 60px; }
-        .profile-info { display: flex; align-items: center; gap: 12px; }
+        /* WhatsApp Header */
+        header { background: #202c33; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; border-bottom: 1px solid #222d34; }
+        .chat-info { display: flex; align-items: center; gap: 12px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 1.1rem; }
-        .details h2 { font-size: 1rem; font-weight: 500; color: #f1f1f2; }
-        .details span { font-size: 0.75rem; color: #8696a0; }
+        .name-status h2 { font-size: 1rem; font-weight: 500; color: #f1f1f2; }
+        .name-status span { font-size: 0.75rem; color: #8696a0; }
         
-        .header-actions { display: flex; gap: 20px; }
-        .header-actions button { background: none; border: none; color: #aebac1; font-size: 1.2rem; cursor: pointer; }
-        .header-actions button:hover { color: #00a884; }
+        .header-icons { display: flex; gap: 22px; }
+        .header-icons button { background: none; border: none; color: #aebac1; font-size: 1.25rem; cursor: pointer; }
+        .header-icons button:hover { color: #00a884; }
 
-        /* Sekme / Sohbet Alanı */
-        .app-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #0b141a; background-image: radial-gradient(#111b21 1px, transparent 1px); background-size: 20px 20px; }
-        
-        .messages-container { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-        
-        /* Mesaj Baloncukları (Signal/WhatsApp tarzı) */
-        .message { max-width: 75%; padding: 8px 12px; border-radius: 7.5px; position: relative; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+        /* Sohbet Arka Planı (WhatsApp Duvar Kağıdı Deseni) */
+        .chat-area { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 12px 16px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+            background-color: #0b141a;
+            background-image: radial-gradient(#111b21 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+
+        /* Mesaj Baloncukları */
+        .message { max-width: 80%; padding: 6px 10px 8px 12px; border-radius: 7.5px; position: relative; font-size: 0.93rem; line-height: 1.4; word-wrap: break-word; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); margin-bottom: 2px; }
         .message.incoming { background: #202c33; align-self: flex-start; border-top-left-radius: 0; color: #e9edef; }
         .message.outgoing { background: #005c4b; align-self: flex-end; border-top-right-radius: 0; color: #e9edef; }
-        .message .time { font-size: 0.65rem; color: #8696a0; float: right; margin-left: 8px; margin-top: 4px; line-height: 1.5; }
-        .message img { width: 100%; border-radius: 6px; margin-top: 4px; max-height: 250px; object-fit: cover; }
-
-        /* Alt Yazışma ve Kontrol Paneli */
-        .chat-input-bar { background: #202c33; padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #222d34; }
-        .chat-input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px 16px; border-radius: 8px; color: #e9edef; font-size: 0.95rem; outline: none; }
-        .chat-input-bar input::placeholder { color: #8696a0; }
         
-        .icon-btn { background: none; border: none; color: #8696a0; font-size: 1.3rem; cursor: pointer; padding: 5px; }
-        .icon-btn:hover { color: #e9edef; }
-        .send-btn { background: #00a884; color: #fff; border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; }
+        .message p { padding-right: 45px; } /* Tarih ve tikler için boşluk */
+        .msg-meta { position: absolute; right: 8px; bottom: 4px; display: flex; align-items: center; gap: 3px; }
+        .time { font-size: 0.65rem; color: #8696a0; }
+        .ticks { font-size: 0.7rem; color: #53bdeb; font-weight: bold; } /* Mavi tik */
+        
+        .message img { width: 100%; border-radius: 6px; margin-top: 4px; max-height: 250px; object-fit: cover; display: block; }
+
+        /* Alt Yazışma Çubuğu */
+        .footer-bar { background: #202c33; padding: 8px 12px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #222d34; }
+        .footer-icon { background: none; border: none; color: #8696a0; font-size: 1.3rem; cursor: pointer; padding: 6px; }
+        .footer-icon:hover { color: #e9edef; }
+        
+        .input-wrapper { flex: 1; background: #2a3942; border-radius: 8px; display: flex; align-items: center; padding: 0 12px; }
+        .input-wrapper input { flex: 1; background: none; border: none; padding: 10px 0; color: #e9edef; font-size: 0.95rem; outline: none; }
+        .input-wrapper input::placeholder { color: #8696a0; }
+
+        .send-btn { background: #00a884; color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; }
         .send-btn:hover { background: #01755c; }
 
-        /* Görüntülü Arama Ekranı (Telegram/Signal tarzı tam ekran) */
-        .call-screen { display: none; position: fixed; inset: 0; background: #0b141a; z-index: 1000; flex-direction: column; justify-content: space-between; padding: 20px; }
-        .video-grid { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; gap: 10px; }
-        video { width: 100%; max-height: 70vh; border-radius: 12px; object-fit: cover; background: #111; }
-        #localVideo { width: 120px; height: 160px; position: absolute; bottom: 20px; right: 20px; border-radius: 8px; border: 2px solid #fff; }
-        .call-controls { display: flex; justify-content: center; gap: 20px; padding-bottom: 20px; }
-        .call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; }
-        .end-call { background: #ea0038; }
-        .mute-call { background: #2a3942; }
-
-        /* Medya Yükleme Menüsü */
-        .media-menu { display: none; position: absolute; bottom: 70px; left: 16px; background: #233138; border-radius: 12px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); flex-direction: column; gap: 8px; border: 1px solid #2f3b43; }
-        .media-menu button { background: none; border: none; color: #e9edef; padding: 8px 16px; text-align: left; cursor: pointer; border-radius: 6px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
-        .media-menu button:hover { background: #182229; }
+        /* Görüntülü Arama Ekranı */
+        .call-overlay { display: none; position: fixed; inset: 0; background: #0b141a; z-index: 999; flex-direction: column; justify-content: space-between; padding: 20px; }
+        .video-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        video { width: 100%; max-height: 70vh; border-radius: 12px; object-fit: cover; background: #000; }
+        #localVideo { width: 110px; height: 150px; position: absolute; bottom: 20px; right: 20px; border-radius: 8px; border: 2px solid #fff; }
+        .call-actions { display: flex; justify-content: center; gap: 20px; padding-bottom: 20px; }
+        .call-action-btn { width: 55px; height: 55px; border-radius: 50%; border: none; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .hangup { background: #ea0038; }
+        .mute { background: #2a3942; }
     </style>
 </head>
 <body>
 
-    <!-- Üst Bar (WhatsApp Tarzı) -->
+    <!-- WhatsApp Üst Bar -->
     <header>
-        <div class="profile-info">
+        <div class="chat-info">
             <div class="avatar">F</div>
-            <div class="details">
-                <h2>Family Hub</h2>
-                <span>çevrimiçi • güvenli uçtan uca</span>
+            <div class="name-status">
+                <h2>Family</h2>
+                <span>çevrimiçi</span>
             </div>
         </div>
-        <div class="header-actions">
+        <div class="header-icons">
             <button onclick="startCall('audio')" title="Sesli Ara">📞</button>
             <button onclick="startCall('video')" title="Görüntülü Ara">📹</button>
         </div>
     </header>
 
-    <!-- Sohbet ve Akış Alanı -->
-    <div class="app-body">
-        <div class="messages-container" id="msgContainer">
-            <div class="message incoming">
-                <p>Aile merkezi şifrelenmiş altyapıyla aktif edildi. Hoş geldiniz!</p>
-                <span class="time">02:50</span>
+    <!-- Sohbet Akışı -->
+    <div class="chat-area" id="chatArea">
+        <div class="message incoming">
+            <p>Aile grubu kuruldu. WhatsApp renklerinde ve düzeninde birebir aktif edildi.</p>
+            <div class="msg-meta">
+                <span class="time">03:15</span>
             </div>
         </div>
     </div>
 
-    <!-- Medya Seçenek Menüsü -->
-    <div class="media-menu" id="mediaMenu">
-        <button onclick="document.getElementById('fileInput').click()">📷 Fotoğraf / Video Gönder</button>
-        <button onclick="toggleRecord()">🎤 Ses Kaydı Bırak</button>
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
-    </div>
-
-    <!-- Alt Mesaj Yazma Barı -->
-    <div class="chat-input-bar" style="position: relative;">
-        <button class="icon-btn" onclick="toggleMediaMenu()">➕</button>
-        <input type="text" id="messageInput" placeholder="Bir mesaj yazın..." onkeypress="handleKeyPress(event)">
-        <button class="icon-btn" id="micBtn" onclick="toggleRecord()">🎤</button>
+    <!-- Alt Mesaj Yazma Paneli -->
+    <div class="footer-bar">
+        <button class="footer-icon" onclick="document.getElementById('fileInput').click()" title="Fotoğraf Ekle">📎</button>
+        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="sendImage(event)">
+        
+        <div class="input-wrapper">
+            <input type="text" id="msgInput" placeholder="Mesaj" onkeypress="if(event.key==='Enter') sendMessage()">
+        </div>
+        
+        <button class="footer-icon" id="micBtn" onclick="toggleVoiceNote()" title="Ses Kaydı">🎤</button>
         <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
 
-    <!-- Görüntülü / Sesli Arama Ekranı -->
-    <div class="call-screen" id="callScreen">
-        <div style="text-align: center; padding-top: 10px;">
-            <h3 id="callStatusText" style="color: #00a884;">Bağlantı Kuruluyor...</h3>
+    <!-- Arama Ekranı -->
+    <div class="call-overlay" id="callScreen">
+        <div style="text-align: center; padding-top: 15px;">
+            <h3 id="callStatus" style="color: #00a884; font-weight: 500;">Görüşme Başlatılıyor...</h3>
         </div>
-        <div class="video-grid">
+        <div class="video-box">
             <video id="remoteVideo" autoplay playsinline></video>
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
-        <div class="call-controls">
-            <button class="call-btn mute-call" onclick="toggleMute()">🎙️</button>
-            <button class="call-btn end-call" onclick="endCall()">❌</button>
+        <div class="call-actions">
+            <button class="call-action-btn mute" onclick="toggleMute()">🎙️</button>
+            <button class="call-action-btn hangup" onclick="endCall()">📞</button>
         </div>
     </div>
 
     <script>
-        function getCurrentTime() {
-            const now = new Date();
-            return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        function getTime() {
+            const d = new Date();
+            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
         function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const txt = input.value.trim();
-            if (!txt) return;
+            const input = document.getElementById('msgInput');
+            const val = input.value.trim();
+            if(!val) return;
 
-            const container = document.getElementById('msgContainer');
-            container.innerHTML += `
+            const area = document.getElementById('chatArea');
+            area.innerHTML += `
                 <div class="message outgoing">
-                    <p>${txt}</p>
-                    <span class="time">${getCurrentTime()} ✓✓</span>
+                    <p>${val}</p>
+                    <div class="msg-meta">
+                        <span class="time">${getTime()}</span>
+                        <span class="ticks">✓✓</span>
+                    </div>
                 </div>
             `;
             input.value = '';
-            container.scrollTop = container.scrollHeight;
+            area.scrollTop = area.scrollHeight;
         }
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') sendMessage();
-        }
-
-        function toggleMediaMenu() {
-            const menu = document.getElementById('mediaMenu');
-            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
+        function sendImage(e) {
+            const file = e.target.files[0];
+            if(!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const container = document.getElementById('msgContainer');
-                container.innerHTML += `
+            reader.onload = function(evt) {
+                const area = document.getElementById('chatArea');
+                area.innerHTML += `
                     <div class="message outgoing">
-                        <img src="${e.target.result}" alt="Fotoğraf">
-                        <span class="time">${getCurrentTime()} ✓✓</span>
+                        <img src="${evt.target.result}" alt="Fotoğraf">
+                        <div class="msg-meta" style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px; bottom: 8px; right: 12px;">
+                            <span class="time" style="color:#fff;">${getTime()}</span>
+                            <span class="ticks">✓✓</span>
+                        </div>
                     </div>
                 `;
-                container.scrollTop = container.scrollHeight;
+                area.scrollTop = area.scrollHeight;
             };
             reader.readAsDataURL(file);
-            document.getElementById('mediaMenu').style.display = 'none';
         }
 
-        let recording = false;
-        function toggleRecord() {
-            recording = !recording;
+        let isRecording = false;
+        function toggleVoiceNote() {
+            isRecording = !isRecording;
             const btn = document.getElementById('micBtn');
-            btn.style.color = recording ? '#ea0038' : '#86
+            btn.style.color = isRecording ? '#ea0038' : '#8696a0';
+            
+            if(!isRecording) {
+                const area = document.getElementById('chatArea');
+                area.innerHTML += `
+                    <div class="message outgoing">
+                        <p>🎤 Sesli Mesaj (0:03)</p>
+                        <div class="msg-meta">
+                            <span class="time">${getTime()}</span>
+                            <span class="ticks">✓✓</span>
+                        </div>
+                    </div>
+                `;
+                area.scrollTop = area.scrollHeight;
+            } else {
+                alert("🔴 Ses kaydediliyor... Bitirmek için tekrar mikrofona basın.");
+            }
+        }
+
+        async function startCall(type) {
+            document.getElementById('callScreen').style.display = 'flex';
+            document.getElementById('callStatus').innerText = type === 'video' ? 'Görüntülü Araniyor...' : 'Sesli Araniyor...';
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
+                document.getElementById('localVideo').srcObject = stream;
+            } catch(err) {
+                alert("Kamera/Mikrofon izni alınamadı: " + err.message);
+                endCall();
+            }
+        }
+
+        function endCall() {
+            document.getElementById('callScreen').style.display = 'none';
+            const vid = document.getElementById('localVideo');
+            if(vid.srcObject) {
+                vid.srcObject.getTracks().forEach(t => t.stop());
+            }
+        }
+
+        function toggleMute() {
+            const vid = document.getElementById('localVideo');
+            if(vid.srcObject) {
+                const track = vid.srcObject.getAudioTracks()[0];
+                if(track) track.enabled = !track.enabled;
+                alert(track.enabled ? "Mikrofon Açık" : "Mikrofon Kapalı");
+            }
+        }
+    </script>
+</body>
+</html>
