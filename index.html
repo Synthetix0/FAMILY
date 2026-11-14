@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family - Özel Aile Merkezi</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        header { background: #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        h1 { font-size: 1.2rem; font-weight: 600; color: #38bdf8; }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        sidebar { width: 300px; background: #1e293b; border-right: 1px solid #334155; display: flex; flex-direction: column; }
+        .content-area { flex: 1; display: flex; flex-direction: column; background: #0f172a; overflow-y: auto; padding: 20px; }
+        .tab-bar { display: flex; background: #1e293b; border-bottom: 1px solid #334155; }
+        .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: #94a3b8; font-weight: 600; cursor: pointer; text-align: center; }
+        .tab-btn.active { color: #38bdf8; border-bottom: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.05); }
+        .feed-card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+        .feed-card img { width: 100%; border-radius: 8px; margin-top: 10px; max-height: 350px; object-fit: cover; }
+        .controls { padding: 15px; background: #1e293b; border-top: 1px solid #334155; display: flex; gap: 10px; align-items: center; }
+        input, button { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 0.95rem; }
+        input { flex: 1; }
+        button { background: #38bdf8; color: #0f172a; font-weight: 600; border: none; cursor: pointer; }
+        button:hover { background: #0ea5e9; }
+        .call-screen { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 100; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+        video { width: 80%; max-width: 600px; border-radius: 12px; background: #000; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>family // özel alan</h1>
+        <button onclick="startCall()">Görüntülü Ara</button>
+    </header>
+
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('feed')">Fotoğraf & Akış</button>
+        <button class="tab-btn" onclick="switchTab('chat')">Mesaj & Ses</button>
+    </div>
+
+    <div class="main-container">
+        <div class="content-area" id="feed-view">
+            <div class="feed-card">
+                <strong>Sistem Yöneticisi</strong>
+                <p>Aile merkezi aktif! Fotoğraf, mesaj ve aramalar hazır.</p>
+            </div>
+        </div>
+        
+        <div class="content-area" id="chat-view" style="display:none;">
+            <div style="flex:1; overflow-y:auto; margin-bottom:15px;" id="chat-messages">
+                <div style="background:#1e293b; padding:10px; border-radius:8px; margin-bottom:10px; width:fit-content;">
+                    <small style="color:#94a3b8;">Fatih</small>
+                    <p>Herkese selam, sistem kuruldu!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="msgInput" placeholder="Mesaj yaz veya ses kaydı ekle...">
+        <button onclick="sendMessage()">Gönder</button>
+        <button onclick="toggleRecord()" id="recBtn">🎤</button>
+    </div>
+
+    <div class="call-screen" id="callScreen">
+        <h2>Canlı Görüşme</h2>
+        <video id="localVideo" autoplay playsinline muted></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+        <button onclick="endCall()" style="background:#ef4444; color:#fff;">Aramayı Sonlandır</button>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if(tab === 'feed') {
+                document.getElementById('feed-view').style.display = 'block';
+                document.getElementById('chat-view').style.display = 'none';
+                event.target.classList.add('active');
+            } else {
+                document.getElementById('feed-view').style.display = 'none';
+                document.getElementById('chat-view').style.display = 'block';
+                event.target.classList.add('active');
+            }
+        }
+
+        function sendMessage() {
+            const txt = document.getElementById('msgInput').value;
+            if(!txt) return;
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML += `<div style="background:#1e293b; padding:10px; border-radius:8px; margin-bottom:10px; width:fit-content; margin-left:auto;"><p>${txt}</p></div>`;
+            document.getElementById('msgInput').value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        let recording = false;
+        function toggleRecord() {
+            recording = !recording;
+            const btn = document.getElementById('recBtn');
+            btn.style.background = recording ? '#ef4444' : '#38bdf8';
+            if(recording) {
+                alert("Ses kaydı alınıyor... (Simülasyon aktif)");
+            } else {
+                alert("Ses kaydı sohbete eklendi!");
+            }
+        }
+
+        async function startCall() {
+            document.getElementById('callScreen').style.display = 'flex';
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = stream;
+            } catch (err) {
+                alert("Kamera/Mikrofon izni alınamadı: " + err.message);
+            }
+        }
+
+        function endCall() {
+            document.getElementById('callScreen').style.display = 'none';
+            const videoEl = document.getElementById('localVideo');
+            if(videoEl.srcObject) {
+                videoEl.srcObject.getTracks().forEach(track => track.stop());
+            }
+        }
+    </script>
+</body>
+</html>
