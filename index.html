@@ -3,222 +3,452 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WhatsApp</title>
+    <title>Family App</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0b141a">
+    <meta name="theme-color" content="#111b21">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background: #0b141a; color: #e9edef; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* WhatsApp Header */
-        header { background: #202c33; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; border-bottom: 1px solid #222d34; }
-        .chat-info { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 1.1rem; }
-        .name-status h2 { font-size: 1rem; font-weight: 500; color: #f1f1f2; }
-        .name-status span { font-size: 0.75rem; color: #8696a0; }
-        
-        .header-icons { display: flex; gap: 22px; }
-        .header-icons button { background: none; border: none; color: #aebac1; font-size: 1.25rem; cursor: pointer; }
-        .header-icons button:hover { color: #00a884; }
+        body { background: #111b21; color: #e9edef; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* Sohbet Arka Planı (WhatsApp Duvar Kağıdı Deseni) */
-        .chat-area { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 12px 16px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 4px; 
-            background-color: #0b141a;
-            background-image: radial-gradient(#111b21 1px, transparent 1px);
-            background-size: 16px 16px;
-        }
+        /* GİRİŞ EKRANI */
+        #loginScreen { position: fixed; inset: 0; background: #111b21; z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .login-box { background: #202c33; padding: 30px; border-radius: 12px; width: 100%; max-width: 360px; border: 1px solid #2f3b43; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .login-box h2 { color: #00a884; font-size: 1.4rem; text-align: center; margin-bottom: 5px; }
+        .login-box input { background: #2a3942; border: 1px solid #3b4a54; padding: 12px 14px; border-radius: 8px; color: #fff; font-size: 1rem; outline: none; width: 100%; }
+        .login-box button { background: #00a884; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 5px; }
 
-        /* Mesaj Baloncukları */
-        .message { max-width: 80%; padding: 6px 10px 8px 12px; border-radius: 7.5px; position: relative; font-size: 0.93rem; line-height: 1.4; word-wrap: break-word; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); margin-bottom: 2px; }
-        .message.incoming { background: #202c33; align-self: flex-start; border-top-left-radius: 0; color: #e9edef; }
-        .message.outgoing { background: #005c4b; align-self: flex-end; border-top-right-radius: 0; color: #e9edef; }
+        .screen { flex: 1; display: none; flex-direction: column; overflow: hidden; background: #111b21; }
+        .screen.active { display: flex; }
+
+        header { background: #202c33; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; border-bottom: 1px solid #222d34; }
+        h2 { font-size: 1.1rem; font-weight: 500; color: #f1f1f2; }
         
-        .message p { padding-right: 45px; } /* Tarih ve tikler için boşluk */
-        .msg-meta { position: absolute; right: 8px; bottom: 4px; display: flex; align-items: center; gap: 3px; }
-        .time { font-size: 0.65rem; color: #8696a0; }
-        .ticks { font-size: 0.7rem; color: #53bdeb; font-weight: bold; } /* Mavi tik */
-        
+        .bottom-nav { background: #202c33; height: 60px; display: flex; border-top: 1px solid #222d34; }
+        .nav-btn { flex: 1; background: none; border: none; color: #8696a0; font-size: 0.7rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; font-weight: 500; }
+        .nav-btn.active { color: #00a884; }
+        .nav-btn span.icon { font-size: 1.1rem; }
+
+        .list-container { flex: 1; overflow-y: auto; }
+        .contact-item { display: flex; align-items: center; padding: 12px 16px; gap: 14px; cursor: pointer; border-bottom: 1px solid #222d34; }
+        .contact-item:hover { background: #202c33; }
+        .avatar { width: 48px; height: 48px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 1.1rem; }
+        .contact-info { flex: 1; }
+        .contact-info h4 { font-size: 1rem; color: #f1f1f2; font-weight: 400; }
+        .contact-info p { font-size: 0.85rem; color: #8696a0; margin-top: 3px; }
+
+        /* Sohbet Penceresi */
+        #chatScreen { position: fixed; inset: 0; background: #0b141a; background-image: radial-gradient(#111b21 1px, transparent 1px); background-size: 16px 16px; z-index: 100; display: none; flex-direction: column; }
+        .chat-header { background: #202c33; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; border-bottom: 1px solid #222d34; }
+        .messages-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+        .message { max-width: 75%; padding: 8px 12px; border-radius: 7.5px; position: relative; font-size: 0.93rem; line-height: 1.4; word-wrap: break-word; }
+        .message.incoming { background: #202c33; align-self: flex-start; border-top-left-radius: 0; }
+        .message.outgoing { background: #005c4b; align-self: flex-end; border-top-right-radius: 0; }
+        .message.sos { background: #991b1b !important; border: 1px solid #ef4444; width: 100%; max-width: 100%; text-align: center; }
+        .msg-meta { font-size: 0.65rem; color: #8696a0; float: right; margin-left: 8px; margin-top: 4px; }
         .message img { width: 100%; border-radius: 6px; margin-top: 4px; max-height: 250px; object-fit: cover; display: block; }
+        .message audio { width: 220px; height: 35px; margin-top: 4px; }
 
-        /* Alt Yazışma Çubuğu */
-        .footer-bar { background: #202c33; padding: 8px 12px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #222d34; }
-        .footer-icon { background: none; border: none; color: #8696a0; font-size: 1.3rem; cursor: pointer; padding: 6px; }
-        .footer-icon:hover { color: #e9edef; }
-        
-        .input-wrapper { flex: 1; background: #2a3942; border-radius: 8px; display: flex; align-items: center; padding: 0 12px; }
-        .input-wrapper input { flex: 1; background: none; border: none; padding: 10px 0; color: #e9edef; font-size: 0.95rem; outline: none; }
-        .input-wrapper input::placeholder { color: #8696a0; }
-
+        .chat-footer { background: #202c33; padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #222d34; }
+        .chat-footer input { flex: 1; background: #2a3942; border: none; padding: 11px 14px; border-radius: 8px; color: #e9edef; font-size: 0.95rem; outline: none; }
+        .action-icon-btn { background: none; border: none; color: #8696a0; font-size: 1.2rem; cursor: pointer; padding: 4px; }
         .send-btn { background: #00a884; color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; }
-        .send-btn:hover { background: #01755c; }
+        .mic-btn { background: #2a3942; color: #8696a0; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; }
+        .mic-btn.recording { background: #ea0038; color: #fff; animation: pulse 1.5s infinite; }
 
-        /* Görüntülü Arama Ekranı */
-        .call-overlay { display: none; position: fixed; inset: 0; background: #0b141a; z-index: 999; flex-direction: column; justify-content: space-between; padding: 20px; }
-        .video-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-        video { width: 100%; max-height: 70vh; border-radius: 12px; object-fit: cover; background: #000; }
-        #localVideo { width: 110px; height: 150px; position: absolute; bottom: 20px; right: 20px; border-radius: 8px; border: 2px solid #fff; }
-        .call-actions { display: flex; justify-content: center; gap: 20px; padding-bottom: 20px; }
-        .call-action-btn { width: 55px; height: 55px; border-radius: 50%; border: none; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; }
-        .hangup { background: #ea0038; }
-        .mute { background: #2a3942; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* Durumlar ve Albüm */
+        .status-feed { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 15px; }
+        .status-card { background: #202c33; border-radius: 12px; padding: 15px; border: 1px solid #2f3b43; }
+        .status-card img { width: 100%; border-radius: 8px; margin-top: 10px; max-height: 300px; object-fit: cover; }
+        .status-input-box { background: #202c33; padding: 12px; border-top: 1px solid #222d34; display: flex; gap: 10px; align-items: center; }
+        .status-input-box input { flex: 1; background: #2a3942; border: none; padding: 10px 14px; border-radius: 8px; color: #fff; outline: none; }
+
+        /* Galeri Grid */
+        .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 12px; overflow-y: auto; flex: 1; }
+        .gallery-item { aspect-ratio: 1; border-radius: 6px; overflow: hidden; background: #202c33; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Evrak Kasası Stili */
+        .vault-container { padding: 15px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .vault-card { background: #202c33; border-radius: 10px; padding: 15px; border: 1px solid #2f3b43; display: flex; justify-content: space-between; align-items: center; }
+        .vault-card h4 { font-size: 0.95rem; color: #f1f1f2; }
+        .vault-card p { font-size: 0.8rem; color: #8696a0; margin-top: 2px; }
+
+        .weather-banner { background: linear-gradient(135deg, #1e3a8a, #202c33); margin: 15px; padding: 15px; border-radius: 12px; border: 1px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
-    <!-- WhatsApp Üst Bar -->
-    <header>
-        <div class="chat-info">
-            <div class="avatar">F</div>
-            <div class="name-status">
-                <h2>Family</h2>
-                <span>çevrimiçi</span>
-            </div>
+    <!-- KULLANICI GİRİŞ EKRANI -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <h2>Family Hub</h2>
+            <p style="font-size:0.85rem; color:#8696a0; text-align:center; margin-bottom:10px;">Özel ve Güvenli Aile Girişi</p>
+            <input type="text" id="usernameInput" placeholder="Kullanıcı Adı (Örn: Fatih)">
+            <input type="password" id="passwordInput" placeholder="Özel Şifre">
+            <button onclick="handleLogin()">Giriş Yap</button>
         </div>
-        <div class="header-icons">
-            <button onclick="startCall('audio')" title="Sesli Ara">📞</button>
-            <button onclick="startCall('video')" title="Görüntülü Ara">📹</button>
-        </div>
-    </header>
+    </div>
 
-    <!-- Sohbet Akışı -->
-    <div class="chat-area" id="chatArea">
-        <div class="message incoming">
-            <p>Aile grubu kuruldu. WhatsApp renklerinde ve düzeninde birebir aktif edildi.</p>
-            <div class="msg-meta">
-                <span class="time">03:15</span>
+    <!-- 1. EKRAN: SOHBETLER -->
+    <div class="screen active" id="tabChats">
+        <header>
+            <h2>Sohbetler</h2>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button onclick="addNewContact()" style="background:#00a884; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:bold;">+ Kişi Ekle</button>
+                <button onclick="triggerSOS()" style="background:#991b1b; color:#fff; border:none; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:bold;">SOS</button>
+                <button onclick="logout()" style="background:#2a3942; color:#aebac1; border:none; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:0.75rem;" title="Çıkış">🚪</button>
+            </div>
+        </header>
+        <div class="list-container" id="contactListContainer">
+            <div class="contact-item" onclick="openChat('Nişanlım ❤️', 'Çevrimiçi')">
+                <div class="avatar" style="background:#9333ea;">❤️</div>
+                <div class="contact-info">
+                    <h4>Nişanlım ❤️</h4>
+                    <p>Çevrimiçi</p>
+                </div>
+            </div>
+            <div class="contact-item" onclick="openChat('Aile Grubu', 'Aktif')">
+                <div class="avatar" style="background:#00a884;">👥</div>
+                <div class="contact-info">
+                    <h4>Aile Grubu</h4>
+                    <p>Güvenli hat devrede...</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Alt Mesaj Yazma Paneli -->
-    <div class="footer-bar">
-        <button class="footer-icon" onclick="document.getElementById('fileInput').click()" title="Fotoğraf Ekle">📎</button>
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="sendImage(event)">
+    <!-- 2. EKRAN: DURUMLAR & HAVA DURUMU -->
+    <div class="screen" id="tabStatus">
+        <header>
+            <h2>Durumlar & Hava</h2>
+            <button onclick="document.getElementById('statusImgInput').click()" style="background:#00a884; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">📷 Fotoğraf</button>
+            <input type="file" id="statusImgInput" accept="image/*" style="display:none" onchange="postStatusImage(event)">
+        </header>
         
-        <div class="input-wrapper">
-            <input type="text" id="msgInput" placeholder="Mesaj" onkeypress="if(event.key==='Enter') sendMessage()">
+        <div class="weather-banner">
+            <div>
+                <h4 style="font-size:0.95rem; color:#60a5fa;">📍 İstanbul / Manisa Hat</h4>
+                <p style="font-size:0.85rem; color:#e2e8f0; margin-top:3px;">Hava Açık ve Güneşli • 18°C</p>
+            </div>
+            <span style="font-size:2rem;">☀️</span>
         </div>
-        
-        <button class="footer-icon" id="micBtn" onclick="toggleVoiceNote()" title="Ses Kaydı">🎤</button>
-        <button class="send-btn" onclick="sendMessage()">➤</button>
+
+        <div class="status-feed" id="statusFeed">
+            <div class="status-card">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                    <div style="width:32px; height:32px; border-radius:50%; background:#00a884; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">F</div>
+                    <div><h4 style="font-size:0.9rem; color:#f1f1f2;">Fatih</h4><span style="font-size:0.7rem; color:#8696a0;">Bugün</span></div>
+                </div>
+                <p style="font-size:0.95rem; color:#e9edef;">Kişi ekleme özelliği aktif edildi!</p>
+            </div>
+        </div>
+        <div class="status-input-box">
+            <input type="text" id="statusTextInput" placeholder="Bir söz veya anı paylaş..." onkeypress="if(event.key==='Enter') postStatusText()">
+            <button class="send-btn" onclick="postStatusText()">➤</button>
+        </div>
     </div>
 
-    <!-- Arama Ekranı -->
-    <div class="call-overlay" id="callScreen">
-        <div style="text-align: center; padding-top: 15px;">
-            <h3 id="callStatus" style="color: #00a884; font-weight: 500;">Görüşme Başlatılıyor...</h3>
+    <!-- 3. EKRAN: ÖNEMLİ EVRAKLAR (KASA) -->
+    <div class="screen" id="tabVault">
+        <header>
+            <h2>Önemli Evrak Kasası</h2>
+            <button onclick="addVaultItem()" style="background:#00a884; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">+ Ekle</button>
+        </header>
+        <div class="vault-container" id="vaultContainer">
+            <div class="vault-card">
+                <div>
+                    <h4>🔑 Ev Wi-Fi Şifresi</h4>
+                    <p>FiberNet_Family_5G / Şifre: orfi2026</p>
+                </div>
+                <span style="font-size:1.2rem;">🔒</span>
+            </div>
+            <div class="vault-card">
+                <div>
+                    <h4>🚗 Araç Sigorta Poliçesi (2017 Doblo)</h4>
+                    <p>Zorunlu Trafik Sigortası • Bitiş: 11.2027</p>
+                </div>
+                <span style="font-size:1.2rem;">📄</span>
+            </div>
         </div>
-        <div class="video-box">
-            <video id="remoteVideo" autoplay playsinline></video>
-            <video id="localVideo" autoplay playsinline muted></video>
+    </div>
+
+    <!-- 4. EKRAN: GALERİ / ALBÜM -->
+    <div class="screen" id="tabGallery">
+        <header>
+            <h2>Fotoğraf Albümü</h2>
+            <button onclick="document.getElementById('galleryImgInput').click()" style="background:#00a884; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">+ Yükle</button>
+            <input type="file" id="galleryImgInput" accept="image/*" style="display:none" onchange="addToGallery(event)">
+        </header>
+        <div class="gallery-grid" id="galleryGrid">
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=300" alt="Anı"></div>
         </div>
-        <div class="call-actions">
-            <button class="call-action-btn mute" onclick="toggleMute()">🎙️</button>
-            <button class="call-action-btn hangup" onclick="endCall()">📞</button>
+    </div>
+
+    <!-- ALT NAVİGASYON (4 SEKME) -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('tabChats', this)"><span class="icon">💬</span> Sohbet</button>
+        <button class="nav-btn" onclick="switchTab('tabStatus', this)"><span class="icon">⭕</span> Durum</button>
+        <button class="nav-btn" onclick="switchTab('tabVault', this)"><span class="icon">🔐</span> Kasa</button>
+        <button class="nav-btn" onclick="switchTab('tabGallery', this)"><span class="icon">🖼️</span> Albüm</button>
+    </div>
+
+    <!-- ÖZEL SOHBET EKRANI -->
+    <div id="chatScreen">
+        <div class="chat-header">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button onclick="closeChat()" style="background:none; border:none; color:#aebac1; font-size:1.2rem; cursor:pointer;">⬅️</button>
+                <div>
+                    <h3 id="activeChatTitle" style="font-size:1rem; font-weight:500;">Sohbet</h3>
+                    <span id="activeChatStatus" style="font-size:0.7rem; color:#00a884;">çevrimiçi</span>
+                </div>
+            </div>
+            <button onclick="sendLocation()" style="background:none; border:none; color:#38bdf8; font-size:1.2rem; cursor:pointer;" title="Konum Paylaş">📍</button>
+        </div>
+        <div class="messages-box" id="chatMessages">
+            <div class="message incoming">
+                <p>Güvenli hat aktif. Sohbet odasına hoş geldiniz.</p>
+                <span class="msg-meta">03:10</span>
+            </div>
+        </div>
+        <div class="chat-footer">
+            <button class="action-icon-btn" onclick="document.getElementById('chatImgInput').click()">📎</button>
+            <input type="file" id="chatImgInput" accept="image/*" style="display:none" onchange="sendChatImage(event)">
+            <button class="mic-btn" id="micBtn" onclick="toggleRecordAudio()" title="Ses Kaydı">🎤</button>
+            <input type="text" id="chatInput" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+            <button class="send-btn" onclick="sendChatMessage()">➤</button>
         </div>
     </div>
 
     <script>
-        function getTime() {
-            const d = new Date();
-            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        window.onload = function() {
+            const savedUser = localStorage.getItem('family_logged_user');
+            if (savedUser) {
+                document.getElementById('loginScreen').style.display = 'none';
+            }
+        };
+
+        function handleLogin() {
+            const user = document.getElementById('usernameInput').value.trim();
+            const pass = document.getElementById('passwordInput').value.trim();
+
+            if (!user || !pass) {
+                alert("Lütfen kullanıcı adı ve şifre girin!");
+                return;
+            }
+
+            if (pass.length >= 4) {
+                localStorage.setItem('family_logged_user', user);
+                document.getElementById('loginScreen').style.display = 'none';
+            } else {
+                alert("Şifre en az 4 karakter olmalıdır!");
+            }
         }
 
-        function sendMessage() {
-            const input = document.getElementById('msgInput');
+        function logout() {
+            localStorage.removeItem('family_logged_user');
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+
+        /* YENİ KİŞİ EKLEME FONKSİYONU */
+        function addNewContact() {
+            const name = prompt("Eklenecek kişinin adı (Örn: Annem):");
+            const status = prompt("Durum mesajı (Örn: Müsait / Evde):") || "Çevrimiçi";
+            
+            if(name) {
+                const firstLetter = name.charAt(0).toUpperCase();
+                const colors = ['#00a884', '#9333ea', '#3b82f6', '#f59e0b', '#ec4899'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+                const container = document.getElementById('contactListContainer');
+                container.innerHTML += `
+                    <div class="contact-item" onclick="openChat('${name}', '${status}')">
+                        <div class="avatar" style="background:${randomColor};">${firstLetter}</div>
+                        <div class="contact-info">
+                            <h4>${name}</h4>
+                            <p>${status}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function switchTab(screenId, btn) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function openChat(name, status) {
+            document.getElementById('activeChatTitle').innerText = name;
+            document.getElementById('activeChatStatus').innerText = status;
+            document.getElementById('chatScreen').style.display = 'flex';
+        }
+
+        function closeChat() {
+            document.getElementById('chatScreen').style.display = 'none';
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
             const val = input.value.trim();
             if(!val) return;
 
-            const area = document.getElementById('chatArea');
-            area.innerHTML += `
+            const box = document.getElementById('chatMessages');
+            box.innerHTML += `
                 <div class="message outgoing">
                     <p>${val}</p>
-                    <div class="msg-meta">
-                        <span class="time">${getTime()}</span>
-                        <span class="ticks">✓✓</span>
-                    </div>
+                    <span class="msg-meta">✓✓</span>
                 </div>
             `;
             input.value = '';
-            area.scrollTop = area.scrollHeight;
+            box.scrollTop = box.scrollHeight;
         }
 
-        function sendImage(e) {
+        function sendChatImage(e) {
             const file = e.target.files[0];
             if(!file) return;
             const reader = new FileReader();
             reader.onload = function(evt) {
-                const area = document.getElementById('chatArea');
-                area.innerHTML += `
+                const box = document.getElementById('chatMessages');
+                box.innerHTML += `
                     <div class="message outgoing">
                         <img src="${evt.target.result}" alt="Fotoğraf">
-                        <div class="msg-meta" style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px; bottom: 8px; right: 12px;">
-                            <span class="time" style="color:#fff;">${getTime()}</span>
-                            <span class="ticks">✓✓</span>
-                        </div>
+                        <span class="msg-meta">✓✓</span>
                     </div>
                 `;
-                area.scrollTop = area.scrollHeight;
+                box.scrollTop = box.scrollHeight;
             };
             reader.readAsDataURL(file);
         }
 
-        let isRecording = false;
-        function toggleVoiceNote() {
-            isRecording = !isRecording;
-            const btn = document.getElementById('micBtn');
-            btn.style.color = isRecording ? '#ea0038' : '#8696a0';
-            
-            if(!isRecording) {
-                const area = document.getElementById('chatArea');
-                area.innerHTML += `
-                    <div class="message outgoing">
-                        <p>🎤 Sesli Mesaj (0:03)</p>
-                        <div class="msg-meta">
-                            <span class="time">${getTime()}</span>
-                            <span class="ticks">✓✓</span>
-                        </div>
+        function sendLocation() {
+            const box = document.getElementById('chatMessages');
+            box.innerHTML += `
+                <div class="message outgoing">
+                    <p>📍 <b>Canlı Konum Paylaşıldı</b><br><small style="color:#cbd5e1;">Istanbul, Türkiye</small></p>
+                    <span class="msg-meta">✓✓</span>
+                </div>
+            `;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function triggerSOS() {
+            if(confirm("🚨 DİKKAT: Aile üyelerinin hepsine acil SOS sinyali gönderilsin mi?")) {
+                const box = document.getElementById('chatMessages');
+                document.getElementById('chatScreen').style.display = 'flex';
+                box.innerHTML += `
+                    <div class="message sos">
+                        <p style="font-size:1rem; font-weight:bold;">🚨 ACİL DURUM (SOS) BİLDİRİMİ!</p>
+                        <p style="font-size:0.85rem; margin-top:4px;">Acil durum sinyali gönderildi!</p>
+                        <span class="msg-meta" style="color:#fff;">Şimdi</span>
                     </div>
                 `;
-                area.scrollTop = area.scrollHeight;
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        async function toggleRecordAudio() {
+            const btn = document.getElementById('micBtn');
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const url = URL.createObjectURL(blob);
+                        const box = document.getElementById('chatMessages');
+                        box.innerHTML += `
+                            <div class="message outgoing">
+                                <audio controls src="${url}"></audio>
+                                <span class="msg-meta">✓✓</span>
+                            </div>
+                        `;
+                        box.scrollTop = box.scrollHeight;
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.classList.add('recording');
+                } catch (err) {
+                    alert("Mikrofon izni alınamadı: " + err.message);
+                }
             } else {
-                alert("🔴 Ses kaydediliyor... Bitirmek için tekrar mikrofona basın.");
+                mediaRecorder.stop();
+                isRecording = false;
+                btn.classList.remove('recording');
             }
         }
 
-        async function startCall(type) {
-            document.getElementById('callScreen').style.display = 'flex';
-            document.getElementById('callStatus').innerText = type === 'video' ? 'Görüntülü Araniyor...' : 'Sesli Araniyor...';
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
-                document.getElementById('localVideo').srcObject = stream;
-            } catch(err) {
-                alert("Kamera/Mikrofon izni alınamadı: " + err.message);
-                endCall();
+        function postStatusText() {
+            const input = document.getElementById('statusTextInput');
+            const val = input.value.trim();
+            if(!val) return;
+            const feed = document.getElementById('statusFeed');
+            feed.innerHTML = `
+                <div class="status-card">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <div style="width:32px; height:32px; border-radius:50%; background:#00a884; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">F</div>
+                        <div><h4 style="font-size:0.9rem; color:#f1f1f2;">Paylaşım</h4><span style="font-size:0.7rem; color:#8696a0;">Şimdi</span></div>
+                    </div>
+                    <p style="font-size:0.95rem; color:#e9edef;">${val}</p>
+                </div>
+            ` + feed.innerHTML;
+            input.value = '';
+        }
+
+        function postStatusImage(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const feed = document.getElementById('statusFeed');
+                feed.innerHTML = `
+                    <div class="status-card">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <div style="width:32px; height:32px; border-radius:50%; background:#00a884; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">F</div>
+                            <div><h4 style="font-size:0.9rem; color:#f1f1f2;">Paylaşım</h4><span style="font-size:0.7rem; color:#8696a0;">Şimdi</span></div>
+                        </div>
+                        <img src="${evt.target.result}" alt="Durum">
+                    </div>
+                ` + feed.innerHTML;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function addVaultItem() {
+            const title = prompt("Evrak / Bilgi Başlığı:");
+            const desc = prompt("Detay / Şifre Bilgisi:");
+            if(title && desc) {
+                const container = document.getElementById('vaultContainer');
+                container.innerHTML += `
+                    <div class="vault-card">
+                        <div>
+                            <h4>🔐 ${title}</h4>
+                            <p>${desc}</p>
+                        </div>
+                        <span style="font-size:1.2rem;">📄</span>
+                    </div>
+                `;
             }
         }
 
-        function endCall() {
-            document.getElementById('callScreen').style.display = 'none';
-            const vid = document.getElementById('localVideo');
-            if(vid.srcObject) {
-                vid.srcObject.getTracks().forEach(t => t.stop());
-            }
-        }
-
-        function toggleMute() {
-            const vid = document.getElementById('localVideo');
-            if(vid.srcObject) {
-                const track = vid.srcObject.getAudioTracks()[0];
-                if(track) track.enabled = !track.enabled;
-                alert(track.enabled ? "Mikrofon Açık" : "Mikrofon Kapalı");
-            }
+        function addToGallery(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const grid = document.getElementById('galleryGrid');
+                grid.innerHTML = `<div class="gallery-item"><img src="${evt.target.result}" alt="Albüm"></div>` + grid.innerHTML;
+            };
+            reader.readAsDataURL(file);
         }
     </script>
 </body>
